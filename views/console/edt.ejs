@@ -1,0 +1,54 @@
+     <%-include('../cabecalho.ejs')%>
+     <header>
+        <div class="title2">Editar Console</div>
+        <div class="subtitle">Edite os dados de um console</div><br>
+      </header>
+      <div class="content">
+        <form id="form-console" autocomplete="off" method="post">
+          <div class="grid">
+            <div>
+              <label for="id">ID</label>
+              <input id="id" name="id" type="text" value="<%=console._id%>" readonly required>
+            </div>
+            <div>
+              <label for="nome_arcade">Nome da Máquina</label>
+              <input id="nome_arcade" name="nome_arcade" type="text" placeholder="Ex: Arcade Cabinet #07" value="<%=console.nome_arcade%>" required>
+            </div>
+            <div>
+              <label for="jogos_instalados">Jogos Instalados</label>
+              <input id="jogos_instalados" name="jogos_instalados" type="text" placeholder="Super Mario Bros" value="<%=console.jogos_instalados%>" required>
+            </div>
+            <div>
+              <label for="condicao">Condição</label>
+              <select id="condicao" name="condicao" required>
+                <option value="" disabled selected>Selecione a condição</option>
+                <option value="Excelente" <%=console.condicao === 'Excelente' ? 'selected' : ''%>>Excelente</option>
+                <option value="Ótima" <%=console.condicao === 'Ótima' ? 'selected' : ''%>>Ótima</option>
+                <option value="Em Reparo" <%=console.condicao === 'Em Reparo' ? 'selected' : ''%>>Em Reparo</option>
+              </select>
+            </div>
+            <div>
+              <label for="conexao_internet">Conexão com a Internet</label>
+              <select id="conexao_internet" name="conexao_internet" required>
+                <option value="" disabled selected>Selecione a conexão</option>
+                <option value="Online" <%=console.conexao_internet === 'Online' ? 'selected' : ''%>>Online</option>
+                <option value="Offline" <%=console.conexao_internet === 'Offline' ? 'selected' : ''%>>Offline</option>
+              </select>
+            <div>
+              <label for="status">Status</label>
+              <select id="status" name="status" required>
+                <option value="" disabled selected>Selecione o status</option>
+                <option value="Disponivel" <%=console.status === 'Disponivel' ? 'selected' : ''%>>Disponível</option>
+                <option value="Em Uso" <%=console.status === 'Em Uso' ? 'selected' : ''%>>Em Uso</option>
+                <option value="Em Manutenção" <%=console.status === 'Manutenção' ? 'selected' : ''%>>Em Manutenção</option>
+              </select>
+            </div>
+          </div>   
+          <footer>
+            <a type="button" class="btn ghost" id="btn-cancelar" href="/console/lst">Cancelar</a>
+            <button type="submit" class="btn primary">Salvar</button>
+          </footer>
+        </form>
+      </div>
+
+      <%-include('../rodape.ejs')%>

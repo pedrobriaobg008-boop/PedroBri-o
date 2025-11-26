@@ -1,0 +1,43 @@
+     <%-include('../cabecalho.ejs')%>
+     <header>
+        <div class="title2">Editar Jogo</div>
+        <div class="subtitle">Edite os dados de um jogo</div><br>
+      </header>
+      <div class="content">
+        <form id="form-categoria" enctype="multipart/form-data" autocomplete="off" method="post">
+          <div class="grid">
+            <div>
+              <label for="id">ID</label>
+              <input id="id" name="id" type="text" value="<%=jogo._id%>" readonly required>
+            </div>
+              <div>
+                <label for="foto">Foto do Jogo</label>
+                <input id="foto" name="foto" type="file">
+            <div>
+              <label for="titulo">Título</label>
+              <input id="titulo" name="titulo" type="text" placeholder="Insira o título do jogo" value="<%=jogo.titulo%>" required>
+            </div>
+            <div>
+              <label for="genero">Gênero</label>
+              <input id="genero" name="genero" type="text" placeholder="Insira o gênero do jogo" value="<%=jogo.genero%>" required>
+            </div>
+            <div>
+              <label for="popularidade">Popularidade</label>
+              <input id="popularidade" name="popularidade" type="number" placeholder="Insira a popularidade do jogo" value="<%=jogo.popularidade%>" required>
+            </div>
+            <div>
+              <label for="qtde_jogadores">Quantidade de Jogadores</label>
+              <input id="qtde_jogadores" name="qtde_jogadores" type="number" placeholder="Insira a quantidade de jogadores" value="<%=jogo.qtde_jogadores%>" required>
+            </div>
+            <div>
+              <label for="recorde">Recorde</label>
+              <input id="recorde" name="recorde" type="number" placeholder="Insira o recorde do jogo" value="<%=jogo.recorde%>" required>
+            </div>
+          <footer>
+            <a type="button" class="btn ghost" id="btn-cancelar" href="/jogo/lst">Cancelar</a>
+            <button type="submit" class="btn primary">Salvar</button>
+          </footer>
+        </form>
+      </div>
+
+      <%-include('../rodape.ejs')%>

@@ -1,0 +1,50 @@
+   <%-include('../cabecalho.ejs')%>
+     <header>
+        <div class="title2">Novo Console</div>
+        <div class="subtitle">Registre um novo Console</div><br>
+      </header>
+      <div class="content">
+        <form id="form-console" autocomplete="off" action="/console/add/ok" method="post">
+          <div class="grid">
+            <div>
+              <label for="nome_arcade">Nome da Máquina</label>
+              <input id="nome_arcade" name="nome_arcade" type="text" placeholder="Ex: Arcade Cabinet #07" required>
+            </div>
+            <div>
+              <label for="jogos_instalados">Jogos Instalados</label>
+              <input id="jogos_instalados" name="jogos_instalados" type="text" placeholder="Super Mario Bros" required>
+            </div>
+            <div>
+              <label for="condição">Condição</label>
+              <select id="condição" name="condição" required>
+                <option value="" disabled selected>Selecione a condição</option>
+                <option value="Excelente">Excelente</option>
+                <option value="Ótima">Ótima</option>
+                <option value="Em Reparo">Em Reparo</option>
+              </select>
+            </div>
+             <div>
+              <label for="conexao_internet">Conexão com a Internet</label>
+              <select id="conexao_internet" name="conexao_internet" required>
+                <option value="" disabled selected>Selecione a conexão</option>
+                <option value="Online">Online</option>
+                <option value="Offline">Offline</option>
+              </select>
+            </div>
+            <div>
+              <label for="status">Status</label>
+              <select id="status" name="status" required>
+                <option value="" disabled selected>Selecione o status</option>
+                <option value="Disponivel">Disponível</option>
+                <option value="Em Uso">Em Uso</option>
+                <option value="Manutenção">Em Manutenção</option>
+              </select>
+            </div>
+          <footer>
+            <a type="button" class="btn ghost" id="btn-cancelar" href="/console/lst">Cancelar</a>
+            <button type="submit" class="btn primary">Criar Console</button>
+          </footer>
+        </form>
+      </div>
+
+      <%-include('../rodape.ejs')%>

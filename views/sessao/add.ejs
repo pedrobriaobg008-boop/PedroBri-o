@@ -1,0 +1,53 @@
+<%-include('../cabecalho.ejs')%>
+     <header>
+        <div class="title2">Nova Sessão de Jogo</div>
+        <div class="subtitle">Adicione uma nova sessão de jogo</div><br>
+      </header>
+      <div class="content">
+        <form id="form-categoria" autocomplete="off" action="/sessao/add/ok" method="post">
+          <div class="grid">
+            <div>
+              <label for="id_cliente">Cliente</label>
+              <input id="id_cliente" name="id_cliente" type="text" placeholder="ID do Cliente" required>
+            </div>
+            <div>
+              <label for="id_maquina">Máquina</label>
+              <input id="id_maquina" name="id_maquina" type="text" placeholder="ID da Máquina" required>
+            </div>
+            <div>
+              <label for="id_jogo">Jogo</label>
+              <input id="id_jogo" name="id_jogo" type="text" placeholder="ID do Jogo" required>
+            </div>
+            <div>
+              <label for="duracao">Duração (minutos)</label>
+              <input id="duracao" name="duracao" type="number" placeholder="Ex: 60" required>
+            </div>
+            <div>
+              <label for="data">Data</label>
+              <input id="data" name="data" type="date" required>
+            </div>
+            <div>
+              <label for="hora">Hora</label>
+              <input id="hora" name="hora" type="time" required>
+            </div>
+             <div>
+              <label for="valor_total">Valor Total</label>
+              <input id="valor_total" name="valor_total" type="number" step="0.01" placeholder="Ex: 20.00" required>
+            </div>
+            <div>
+              <label for="status">Status</label>
+              <select id="status" name="status" required>
+                <option value="" disabled selected>Selecione o status</option>
+                <option value="Disponivel">Ativa</option>
+                <option value="Em Uso">Finalizada</option>
+              </select>
+            </div>
+          </div>
+          <footer>
+            <a type="button" class="btn ghost" id="btn-cancelar" href="/sessao/lst">Cancelar</a>
+            <button type="submit" class="btn primary">Criar Sessão</button>
+          </footer>
+        </form>
+      </div>
+
+      <%-include('../rodape.ejs')%>

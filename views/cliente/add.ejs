@@ -1,0 +1,49 @@
+     <%-include('../cabecalho.ejs')%>
+     <header>
+        <div class="title2">Novo Cliente</div>
+        <div class="subtitle">Adicione um novo cliente</div><br>
+      </header>
+      <div class="content">
+        <form id="form-cliente" autocomplete="off" action="/cliente/add/ok" method="post">
+          <div class="grid">
+            <div>
+              <label for="nome">Nome do Cliente</label>
+              <input id="nome" name="nome" type="text" placeholder="Insira o Nome" required>
+            </div>
+             <div>
+              <label for="nome">CPF</label>
+              <input id="nome" name="cpf" type="text" placeholder="Insira o CPF" required>
+            </div>
+            <div>
+              <label for="nome">Telefone</label>
+              <input id="nome" name="telefone" type="text" placeholder="Insira o Telefone" required>
+            </div>
+            <div>
+              <label for="nome">Email</label>
+              <input id="nome" name="email" type="text" placeholder="Insira o Email" required>
+            </div>
+            <div>
+              <label for="nome">Horas Jogadas</label>
+              <input id="nome" name="horas_jogadas" type="number" placeholder="Insira as Horas Jogadas" required>
+          </div>
+            <div>
+              <label for="nome">Pontos</label>
+              <input id="nome" name="pontos" type="number" placeholder="Insira os Pontos" required>
+            </div>
+            <div>
+              <label for="nome">Jogos Favoritos</label>
+              <input id="nome" name="jogos_favoritos" type="text" placeholder="Insira os Jogos Favoritos" required>
+            </div>
+            <div>
+              <label for="nome">Plano de Assinatura</label>
+              <input id="nome" name="plano_assinatura" type="text" placeholder="Insira o Plano de Assinatura" required>
+            </div>
+          </div>   
+          <footer>
+            <a type="button" class="btn ghost" id="btn-cancelar" href="/cliente/lst">Cancelar</a>
+            <button type="submit" class="btn primary">Criar Cliente</button>
+          </footer>
+        </form>
+      </div>
+
+      <%-include('../rodape.ejs')%>

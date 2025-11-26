@@ -1,0 +1,57 @@
+<%-include('../cabecalho.ejs')%>
+  <section class="section">
+    <div style="display:flex; align-items:end; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+      <div>
+        <h2>Consoles</h2>
+        <p>Gerencie os consoles do fliperama</p>
+      </div>
+      <div class="actions">
+        <a href="/console/add" class="btn primary">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 5a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H6a1 1 0 110-2h5V6a1 1 0 011-1z" />
+          </svg>
+          Novo Console
+        </a>
+      </div>
+    </div>
+    <form action="/console/lst" method="get" class="search-bar" style="flex:1; max-width:380px; display:flex; gap:10px;">
+        <input type="text" name="q" value="<%= q %>" placeholder="Pesquisar console..." />
+        <button class="btn primary">Buscar</button>
+    </form>
+    <div class="table-wrap" style="margin-top:14px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome da Máquina</th>
+            <th>Jogos Instalados</th>
+            <th>Condição</th>
+            <th>Conexão com a Internet</th>
+            <th>Status</th>
+            <th class="actions-cell">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% consoles.forEach(item => { %>
+            <tr>
+              <td><img src="<%= item.foto %>" width="150" height="150"></td>
+              <td><%= item.nome_arcade %></td>
+              <td><%= item.jogos_instalados %></td>
+              <td><%= item.condicao %></td>
+              <td><%= item.conexao_internet %></td>
+              <td><%= item.status %></td>
+              <td class="actions-cell">
+              <a href="/console/edt/<%=item._id%>"class="icon-btn" title="Editar" aria-label="Editar">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+              </a>
+              <a href="/console/del/<%=item._id%>" class="icon-btn" title="Excluir" aria-label="Excluir">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
+              </a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <%-include('../rodape.ejs')%>

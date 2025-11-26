@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Manager - Gerenciamento de Fliperama</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --purple-900: #581c87;
+            --purple-800: #6b21a8;
+            --purple-500: #a855f7;
+            --purple-400: #c084fc;
+            --purple-300: #d8b4fe;
+            --purple-200: #e9d5ff;
+            --pink-500: #ec4899;
+            --pink-400: #f472b6;
+            --pink-300: #f9a8d4;
+            --cyan-500: #06b6d4;
+            --cyan-400: #22d3ee;
+            --cyan-300: #67e8f9;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --green-400: #4ade80;
+            --green-300: #86efac;
+            --yellow-400: #facc15;
+            --orange-500: #f97316;
+            --red-500: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(to bottom right, var(--slate-900), var(--purple-900), var(--slate-900));
+            color: white;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .background-pattern {
+            position: fixed;
+            inset: 0;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+');
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            padding: 0.5rem;
+            background: linear-gradient(to bottom right, var(--purple-500), var(--pink-500));
+            border-radius: 0.5rem;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-text h1 {
+            font-size: 1.25rem;
+            letter-spacing: 0.05em;
+            color: white;
+            margin-bottom: 0;
+        }
+
+        .logo-text p {
+            font-size: 0.875rem;
+            color: var(--purple-300);
+        }
+
+        nav {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            nav {
+                display: flex;
+                gap: 1.5rem;
+            }
+        }
+
+        nav a {
+            color: var(--purple-200);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+        }
+
+        nav a:hover {
+            color: var(--purple-400);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 5rem 1rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent, rgba(88, 28, 135, 0.2), var(--slate-900));
+            pointer-events: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(to right, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));
+            border: 1px solid rgba(168, 85, 247, 0.5);
+            border-radius: 9999px;
+            color: var(--purple-300);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h2 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, var(--purple-400), var(--pink-400), var(--cyan-400));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+        .hero-description {
+            color: var(--purple-200);
+            max-width: 42rem;
+            margin: 0 auto 3rem;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            background: linear-gradient(to bottom right, rgba(168, 85, 247, 0.1), rgba(168, 85, 247, 0.05));
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(to bottom right, var(--purple-400), var(--pink-400));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Sections */
+        section {
+            padding: 3rem 1rem;
+            scroll-margin-top: 5rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 9999px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-description {
+            color: var(--purple-200);
+            max-width: 42rem;
+            margin: 0 auto;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .cards-grid.four-cols {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .cards-grid.three-cols {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .card {
+            padding: 1.5rem;
+            border-radius: 1rem;
+            background: linear-gradient(to bottom right, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.5));
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            backdrop-filter: blur(4px);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 20px 25px -5px rgba(168, 85, 247, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            background: linear-gradient(to bottom right, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            border: 1px solid;
+        }
+
+        .status-vip-gold {
+            background: rgba(250, 204, 21, 0.2);
+            color: var(--yellow-400);
+            border-color: rgba(250, 204, 21, 0.3);
+        }
+
+        .status-vip-platinum {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--cyan-300);
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        .status-regular {
+            background: rgba(100, 116, 139, 0.2);
+            color: #cbd5e1;
+            border-color: rgba(100, 116, 139, 0.3);
+        }
+
+        .status-disponivel {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--green-300);
+            border-color: rgba(74, 222, 128, 0.3);
+        }
+
+        .status-em-uso {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .status-manutencao {
+            background: rgba(251, 146, 60, 0.2);
+            color: #fdba74;
+            border-color: rgba(251, 146, 60, 0.3);
+        }
+
+        .card h3 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.125rem;
+        }
+
+        .card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--purple-200);
+        }
+
+        .divider {
+            border-top: 1px solid rgba(168, 85, 247, 0.2);
+            padding-top: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 0.25rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .progress-bar {
+            height: 0.5rem;
+            background: var(--slate-800);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s;
+        }
+
+        /* Image Banner */
+        .image-banner {
+            margin-bottom: 2rem;
+            position: relative;
+            border-radius: 1rem;
+            overflow: hidden;
+            height: 16rem;
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+
+        .image-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-banner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, var(--slate-900), rgba(15, 23, 42, 0.5), transparent);
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 1rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(to bottom right, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
+        }
+
+        th {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            color: var(--cyan-300);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        tbody {
+            background: linear-gradient(to bottom right, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.4));
+        }
+
+        tr {
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            transition: background-color 0.2s;
+        }
+
+        tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Stats Cards (Sessões) */
+        .stats-cards {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .stats-cards {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .stat-box {
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid;
+        }
+
+        .stat-box-green {
+            background: linear-gradient(to bottom right, rgba(74, 222, 128, 0.1), rgba(74, 222, 128, 0.05));
+            border-color: rgba(74, 222, 128, 0.3);
+        }
+
+        .stat-box-blue {
+            background: linear-gradient(to bottom right, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .stat-box-purple {
+            background: linear-gradient(to bottom right, rgba(168, 85, 247, 0.1), rgba(168, 85, 247, 0.05));
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .stat-box-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-icon {
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .stat-icon-green {
+            background: rgba(74, 222, 128, 0.2);
+        }
+
+        .stat-icon-blue {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .stat-icon-purple {
+            background: rgba(168, 85, 247, 0.2);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 6rem;
+            border-top: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .footer-content {
+            padding: 3rem 1rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .footer-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .footer-section h4 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: var(--purple-200);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--purple-400);
+        }
+
+        .footer-bottom {
+            padding: 2rem 1rem;
+            border-top: 1px solid rgba(168, 85, 247, 0.2);
+            text-align: center;
+        }
+
+        .footer-bottom p {
+            color: var(--purple-300);
+            font-size: 0.875rem;
+        }
+
+        /* Icons usando símbolos Unicode */
+        .icon {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .icon-lg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-pattern"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;">
+                            <line x1="6" y1="12" x2="10" y2="8"></line>
+                            <line x1="6" y1="12" x2="10" y2="16"></line>
+                            <line x1="6" y1="12" x2="2" y2="12"></line>
+                            <circle cx="17" cy="8" r="1"></circle>
+                            <circle cx="21" cy="12" r="1"></circle>
+                            <circle cx="17" cy="16" r="1"></circle>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>ARCADE MANAGER</h1>
+                        <p>Sistema de Gerenciamento</p>
+                    </div>
+                </div>
+                <nav>
+                    <a href="#clientes">🎮 Clientes</a>
+                    <a href="#consoles">🖥️ Consoles</a>
+                    <a href="#jogos">🏆 Jogos</a>
+                    <a href="#sessoes">⏰ Sessões</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <span class="badge">⚡ Gerenciamento Completo de Fliperama</span>
+            <h2>
+                Bem-vindo ao<br>
+                <span class="gradient-text">Arcade Manager</span>
+            </h2>
+            <p class="hero-description">
+                Sistema completo para gerenciar clientes, consoles, jogos e sessões do seu fliperama. 
+                Controle total com uma interface moderna e intuitiva.
+            </p>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">150+</div>
+                    <p style="color: var(--purple-200); font-size: 0.875rem;">Clientes Ativos</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">25</div>
+                    <p style="color: var(--pink-300); font-size: 0.875rem;">Consoles</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">500+</div>
+                    <p style="color: var(--cyan-300); font-size: 0.875rem;">Jogos</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3.2k</div>
+                    <p style="color: #c7d2fe; font-size: 0.875rem;">Sessões/Mês</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Clientes Section -->
+    <section id="clientes">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge" style="color: var(--purple-300);">
+                    <span>👥</span>
+                    <span>Clientes</span>
+                </div>
+                <h2 class="section-title">
+                    Nossos <span class="gradient-text" style="background: linear-gradient(to right, var(--purple-400), var(--pink-400)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Jogadores</span>
+                </h2>
+                <p class="section-description">
+                    Gerencie e acompanhe todos os clientes do fliperama com informações detalhadas sobre preferências e desempenho.
+                </p>
+            </div>
+
+            <div class="cards-grid four-cols">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <span style="font-size: 1.5rem;">👤</span>
+                        </div>
+                        <span class="status-badge status-vip-gold">VIP Gold</span>
+                    </div>
+                    <h3>Lucas Silva</h3>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>⏰</span>
+                            <span>156h jogadas</span>
+                        </div>
+                        <div class="info-row">
+                            <span>⭐</span>
+                            <span>45.320 pontos</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.875rem; margin-bottom: 0.25rem;">Jogos Favoritos:</p>
+                            <p style="color: var(--purple-200); font-size: 0.75rem;">Street Fighter, Pac-Man</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <span style="font-size: 1.5rem;">👤</span>
+                        </div>
+                        <span class="status-badge status-vip-platinum">VIP Platinum</span>
+                    </div>
+                    <h3>Maria Santos</h3>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>⏰</span>
+                            <span>234h jogadas</span>
+                        </div>
+                        <div class="info-row">
+                            <span>⭐</span>
+                            <span>67.890 pontos</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.875rem; margin-bottom: 0.25rem;">Jogos Favoritos:</p>
+                            <p style="color: var(--purple-200); font-size: 0.75rem;">Mortal Kombat, Tetris</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <span style="font-size: 1.5rem;">👤</span>
+                        </div>
+                        <span class="status-badge status-regular">Regular</span>
+                    </div>
+                    <h3>Pedro Costa</h3>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>⏰</span>
+                            <span>89h jogadas</span>
+                        </div>
+                        <div class="info-row">
+                            <span>⭐</span>
+                            <span>32.100 pontos</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.875rem; margin-bottom: 0.25rem;">Jogos Favoritos:</p>
+                            <p style="color: var(--purple-200); font-size: 0.75rem;">Donkey Kong, Galaga</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <span style="font-size: 1.5rem;">👤</span>
+                        </div>
+                        <span class="status-badge status-vip-gold">VIP Gold</span>
+                    </div>
+                    <h3>Ana Oliveira</h3>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>⏰</span>
+                            <span>178h jogadas</span>
+                        </div>
+                        <div class="info-row">
+                            <span>⭐</span>
+                            <span>51.240 pontos</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.875rem; margin-bottom: 0.25rem;">Jogos Favoritos:</p>
+                            <p style="color: var(--purple-200); font-size: 0.75rem;">Space Invaders, Frogger</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Consoles Section -->
+    <section id="consoles">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge" style="color: var(--pink-300); background: rgba(236, 72, 153, 0.1); border-color: rgba(236, 72, 153, 0.3);">
+                    <span>🖥️</span>
+                    <span>Consoles</span>
+                </div>
+                <h2 class="section-title">
+                    Nossos <span class="gradient-text" style="background: linear-gradient(to right, var(--pink-400), var(--cyan-400)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Arcades</span>
+                </h2>
+                <p class="section-description">
+                    Máquinas arcade de última geração e clássicos restaurados para a melhor experiência de jogo.
+                </p>
+            </div>
+
+            <div class="image-banner">
+                <img src="https://images.unsplash.com/photo-1573349836982-d14092e1665e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcmNhZGUlMjBnYW1lJTIwY2FiaW5ldHxlbnwxfHx8fDE3NjMwNTkxODJ8MA&ixlib=rb-4.1.0&q=80&w=1080" alt="Arcade Cabinets">
+            </div>
+
+            <div class="cards-grid three-cols">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: linear-gradient(to bottom right, rgba(236, 72, 153, 0.2), rgba(6, 182, 212, 0.2));">
+                            <span style="font-size: 1.5rem;">🎮</span>
+                        </div>
+                        <span class="status-badge status-em-uso">Em Uso</span>
+                    </div>
+                    <h3>Arcade Cabinet #01</h3>
+                    <p style="color: var(--pink-300); margin-bottom: 1rem;">Street Fighter II</p>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>💾</span>
+                            <span style="flex: 1;">Jogos Instalados</span>
+                            <span style="color: var(--cyan-300);">12</span>
+                        </div>
+                        <div class="info-row">
+                            <span>🔋</span>
+                            <span style="flex: 1;">Condição</span>
+                            <span style="color: var(--green-300);">Excelente</span>
+                        </div>
+                        <div class="divider">
+                            <div class="info-row">
+                                <span style="color: #9ca3af;">📶</span>
+                                <span style="color: #9ca3af; font-size: 0.875rem;">Offline</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: linear-gradient(to bottom right, rgba(236, 72, 153, 0.2), rgba(6, 182, 212, 0.2));">
+                            <span style="font-size: 1.5rem;">🎮</span>
+                        </div>
+                        <span class="status-badge status-disponivel">Disponível</span>
+                    </div>
+                    <h3>Arcade Cabinet #02</h3>
+                    <p style="color: var(--pink-300); margin-bottom: 1rem;">Pac-Man Deluxe</p>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>💾</span>
+                            <span style="flex: 1;">Jogos Instalados</span>
+                            <span style="color: var(--cyan-300);">8</span>
+                        </div>
+                        <div class="info-row">
+                            <span>🔋</span>
+                            <span style="flex: 1;">Condição</span>
+                            <span style="color: var(--green-300);">Ótima</span>
+                        </div>
+                        <div class="divider">
+                            <div class="info-row">
+                                <span style="color: var(--green-400);">📶</span>
+                                <span style="color: var(--green-300); font-size: 0.875rem;">Online</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: linear-gradient(to bottom right, rgba(236, 72, 153, 0.2), rgba(6, 182, 212, 0.2));">
+                            <span style="font-size: 1.5rem;">🎮</span>
+                        </div>
+                        <span class="status-badge status-manutencao">Em Manutenção</span>
+                    </div>
+                    <h3>Arcade Cabinet #03</h3>
+                    <p style="color: var(--pink-300); margin-bottom: 1rem;">Mortal Kombat</p>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>💾</span>
+                            <span style="flex: 1;">Jogos Instalados</span>
+                            <span style="color: var(--cyan-300);">15</span>
+                        </div>
+                        <div class="info-row">
+                            <span>🔋</span>
+                            <span style="flex: 1;">Condição</span>
+                            <span style="color: var(--green-300);">Em Reparo</span>
+                        </div>
+                        <div class="divider">
+                            <div class="info-row">
+                                <span style="color: #9ca3af;">📶</span>
+                                <span style="color: #9ca3af; font-size: 0.875rem;">Offline</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: linear-gradient(to bottom right, rgba(236, 72, 153, 0.2), rgba(6, 182, 212, 0.2));">
+                            <span style="font-size: 1.5rem;">🎮</span>
+                        </div>
+                        <span class="status-badge status-disponivel">Disponível</span>
+                    </div>
+                    <h3>Arcade Cabinet #04</h3>
+                    <p style="color: var(--pink-300); margin-bottom: 1rem;">Neo Geo Multi</p>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>💾</span>
+                            <span style="flex: 1;">Jogos Instalados</span>
+                            <span style="color: var(--cyan-300);">25</span>
+                        </div>
+                        <div class="info-row">
+                            <span>🔋</span>
+                            <span style="flex: 1;">Condição</span>
+                            <span style="color: var(--green-300);">Excelente</span>
+                        </div>
+                        <div class="divider">
+                            <div class="info-row">
+                                <span style="color: var(--green-400);">📶</span>
+                                <span style="color: var(--green-300); font-size: 0.875rem;">Online</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: linear-gradient(to bottom right, rgba(236, 72, 153, 0.2), rgba(6, 182, 212, 0.2));">
+                            <span style="font-size: 1.5rem;">🎮</span>
+                        </div>
+                        <span class="status-badge status-em-uso">Em Uso</span>
+                    </div>
+                    <h3>Arcade Cabinet #05</h3>
+                    <p style="color: var(--pink-300); margin-bottom: 1rem;">Tekken 3</p>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>💾</span>
+                            <span style="flex: 1;">Jogos Instalados</span>
+                            <span style="color: var(--cyan-300);">10</span>
+                        </div>
+                        <div class="info-row">
+                            <span>🔋</span>
+                            <span style="flex: 1;">Condição</span>
+                            <span style="color: var(--green-300);">Ótima</span>
+                        </div>
+                        <div class="divider">
+                            <div class="info-row">
+                                <span style="color: #9ca3af;">📶</span>
+                                <span style="color: #9ca3af; font-size: 0.875rem;">Offline</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: linear-gradient(to bottom right, rgba(236, 72, 153, 0.2), rgba(6, 182, 212, 0.2));">
+                            <span style="font-size: 1.5rem;">🎮</span>
+                        </div>
+                        <span class="status-badge status-disponivel">Disponível</span>
+                    </div>
+                    <h3>Arcade Cabinet #06</h3>
+                    <p style="color: var(--pink-300); margin-bottom: 1rem;">Metal Slug</p>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span>💾</span>
+                            <span style="flex: 1;">Jogos Instalados</span>
+                            <span style="color: var(--cyan-300);">18</span>
+                        </div>
+                        <div class="info-row">
+                            <span>🔋</span>
+                            <span style="flex: 1;">Condição</span>
+                            <span style="color: var(--green-300);">Excelente</span>
+                        </div>
+                        <div class="divider">
+                            <div class="info-row">
+                                <span style="color: var(--green-400);">📶</span>
+                                <span style="color: var(--green-300); font-size: 0.875rem;">Online</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Jogos Section -->
+    <section id="jogos">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge" style="color: var(--cyan-300); background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.3);">
+                    <span>🏆</span>
+                    <span>Jogos</span>
+                </div>
+                <h2 class="section-title">
+                    Catálogo de <span class="gradient-text" style="background: linear-gradient(to right, var(--cyan-400), var(--purple-400)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Jogos</span>
+                </h2>
+                <p class="section-description">
+                    Uma coleção incrível dos clássicos arcade mais populares e jogos modernos para todos os gostos.
+                </p>
+            </div>
+
+            <div class="image-banner" style="border-color: rgba(6, 182, 212, 0.3);">
+                <img src="https://images.unsplash.com/photo-1570626450053-adb4c2fcb62e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1pbmclMjBqb3lzdGlja3xlbnwxfHx8fDE3NjMwNTU4ODV8MA&ixlib=rb-4.1.0&q=80&w=1080" alt="Gaming Joystick">
+            </div>
+
+            <div class="cards-grid four-cols">
+                <div class="card">
+                    <div style="padding: 0.75rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #ef4444, #f97316); opacity: 0.2; margin-bottom: 1rem; display: inline-block;">
+                        <span style="font-size: 1.5rem;">🏆</span>
+                    </div>
+                    <h3>Street Fighter II</h3>
+                    <p style="color: var(--cyan-300); font-size: 0.875rem; margin-bottom: 1rem;">Luta</p>
+                    <div class="card-info">
+                        <div class="progress-container">
+                            <div class="progress-header">
+                                <span style="color: var(--purple-200);">⚡ Popularidade</span>
+                                <span style="color: var(--yellow-400);">98%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 98%; background: linear-gradient(to right, #ef4444, #f97316);"></div>
+                            </div>
+                        </div>
+                        <div class="info-row" style="padding-top: 0.5rem; border-top: 1px solid rgba(6, 182, 212, 0.2);">
+                            <span>👥</span>
+                            <span>2 Jogadores</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.75rem; margin-bottom: 0.25rem;">Recorde:</p>
+                            <p style="font-size: 1.125rem; background: linear-gradient(to right, var(--yellow-400), var(--orange-500)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">999.999</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="padding: 0.75rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #eab308, #fb923c); opacity: 0.2; margin-bottom: 1rem; display: inline-block;">
+                        <span style="font-size: 1.5rem;">🏆</span>
+                    </div>
+                    <h3>Pac-Man</h3>
+                    <p style="color: var(--cyan-300); font-size: 0.875rem; margin-bottom: 1rem;">Arcade Clássico</p>
+                    <div class="card-info">
+                        <div class="progress-container">
+                            <div class="progress-header">
+                                <span style="color: var(--purple-200);">⚡ Popularidade</span>
+                                <span style="color: var(--yellow-400);">95%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 95%; background: linear-gradient(to right, #eab308, #fb923c);"></div>
+                            </div>
+                        </div>
+                        <div class="info-row" style="padding-top: 0.5rem; border-top: 1px solid rgba(6, 182, 212, 0.2);">
+                            <span>👥</span>
+                            <span>1 Jogador</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.75rem; margin-bottom: 0.25rem;">Recorde:</p>
+                            <p style="font-size: 1.125rem; background: linear-gradient(to right, var(--yellow-400), var(--orange-500)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">3.333.360</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="padding: 0.75rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #a855f7, #ec4899); opacity: 0.2; margin-bottom: 1rem; display: inline-block;">
+                        <span style="font-size: 1.5rem;">🏆</span>
+                    </div>
+                    <h3>Mortal Kombat</h3>
+                    <p style="color: var(--cyan-300); font-size: 0.875rem; margin-bottom: 1rem;">Luta</p>
+                    <div class="card-info">
+                        <div class="progress-container">
+                            <div class="progress-header">
+                                <span style="color: var(--purple-200);">⚡ Popularidade</span>
+                                <span style="color: var(--yellow-400);">92%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 92%; background: linear-gradient(to right, #a855f7, #ec4899);"></div>
+                            </div>
+                        </div>
+                        <div class="info-row" style="padding-top: 0.5rem; border-top: 1px solid rgba(6, 182, 212, 0.2);">
+                            <span>👥</span>
+                            <span>2 Jogadores</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.75rem; margin-bottom: 0.25rem;">Recorde:</p>
+                            <p style="font-size: 1.125rem; background: linear-gradient(to right, var(--yellow-400), var(--orange-500)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">854.200</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="padding: 0.75rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #22c55e, #059669); opacity: 0.2; margin-bottom: 1rem; display: inline-block;">
+                        <span style="font-size: 1.5rem;">🏆</span>
+                    </div>
+                    <h3>Metal Slug</h3>
+                    <p style="color: var(--cyan-300); font-size: 0.875rem; margin-bottom: 1rem;">Ação</p>
+                    <div class="card-info">
+                        <div class="progress-container">
+                            <div class="progress-header">
+                                <span style="color: var(--purple-200);">⚡ Popularidade</span>
+                                <span style="color: var(--yellow-400);">89%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 89%; background: linear-gradient(to right, #22c55e, #059669);"></div>
+                            </div>
+                        </div>
+                        <div class="info-row" style="padding-top: 0.5rem; border-top: 1px solid rgba(6, 182, 212, 0.2);">
+                            <span>👥</span>
+                            <span>2 Jogadores</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.75rem; margin-bottom: 0.25rem;">Recorde:</p>
+                            <p style="font-size: 1.125rem; background: linear-gradient(to right, var(--yellow-400), var(--orange-500)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">765.400</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="padding: 0.75rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #f97316, #ef4444); opacity: 0.2; margin-bottom: 1rem; display: inline-block;">
+                        <span style="font-size: 1.5rem;">🏆</span>
+                    </div>
+                    <h3>Donkey Kong</h3>
+                    <p style="color: var(--cyan-300); font-size: 0.875rem; margin-bottom: 1rem;">Plataforma</p>
+                    <div class="card-info">
+                        <div class="progress-container">
+                            <div class="progress-header">
+                                <span style="color: var(--purple-200);">⚡ Popularidade</span>
+                                <span style="color: var(--yellow-400);">87%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 87%; background: linear-gradient(to right, #f97316, #ef4444);"></div>
+                            </div>
+                        </div>
+                        <div class="info-row" style="padding-top: 0.5rem; border-top: 1px solid rgba(6, 182, 212, 0.2);">
+                            <span>👥</span>
+                            <span>1 Jogador</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.75rem; margin-bottom: 0.25rem;">Recorde:</p>
+                            <p style="font-size: 1.125rem; background: linear-gradient(to right, var(--yellow-400), var(--orange-500)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">1.218.000</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="padding: 0.75rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #3b82f6, #06b6d4); opacity: 0.2; margin-bottom: 1rem; display: inline-block;">
+                        <span style="font-size: 1.5rem;">🏆</span>
+                    </div>
+                    <h3>Tekken 3</h3>
+                    <p style="color: var(--cyan-300); font-size: 0.875rem; margin-bottom: 1rem;">Luta 3D</p>
+                    <div class="card-info">
+                        <div class="progress-container">
+                            <div class="progress-header">
+                                <span style="color: var(--purple-200);">⚡ Popularidade</span>
+                                <span style="color: var(--yellow-400);">94%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 94%; background: linear-gradient(to right, #3b82f6, #06b6d4);"></div>
+                            </div>
+                        </div>
+                        <div class="info-row" style="padding-top: 0.5rem; border-top: 1px solid rgba(6, 182, 212, 0.2);">
+                            <span>👥</span>
+                            <span>2 Jogadores</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.75rem; margin-bottom: 0.25rem;">Recorde:</p>
+                            <p style="font-size: 1.125rem; background: linear-gradient(to right, var(--yellow-400), var(--orange-500)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">654.320</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="padding: 0.75rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #6366f1, #a855f7); opacity: 0.2; margin-bottom: 1rem; display: inline-block;">
+                        <span style="font-size: 1.5rem;">🏆</span>
+                    </div>
+                    <h3>Space Invaders</h3>
+                    <p style="color: var(--cyan-300); font-size: 0.875rem; margin-bottom: 1rem;">Shoot 'em up</p>
+                    <div class="card-info">
+                        <div class="progress-container">
+                            <div class="progress-header">
+                                <span style="color: var(--purple-200);">⚡ Popularidade</span>
+                                <span style="color: var(--yellow-400);">85%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 85%; background: linear-gradient(to right, #6366f1, #a855f7);"></div>
+                            </div>
+                        </div>
+                        <div class="info-row" style="padding-top: 0.5rem; border-top: 1px solid rgba(6, 182, 212, 0.2);">
+                            <span>👥</span>
+                            <span>1 Jogador</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.75rem; margin-bottom: 0.25rem;">Recorde:</p>
+                            <p style="font-size: 1.125rem; background: linear-gradient(to right, var(--yellow-400), var(--orange-500)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">184.870</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="padding: 0.75rem; border-radius: 0.75rem; background: linear-gradient(to bottom right, #06b6d4, #2563eb); opacity: 0.2; margin-bottom: 1rem; display: inline-block;">
+                        <span style="font-size: 1.5rem;">🏆</span>
+                    </div>
+                    <h3>Galaga</h3>
+                    <p style="color: var(--cyan-300); font-size: 0.875rem; margin-bottom: 1rem;">Shoot 'em up</p>
+                    <div class="card-info">
+                        <div class="progress-container">
+                            <div class="progress-header">
+                                <span style="color: var(--purple-200);">⚡ Popularidade</span>
+                                <span style="color: var(--yellow-400);">86%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 86%; background: linear-gradient(to right, #06b6d4, #2563eb);"></div>
+                            </div>
+                        </div>
+                        <div class="info-row" style="padding-top: 0.5rem; border-top: 1px solid rgba(6, 182, 212, 0.2);">
+                            <span>👥</span>
+                            <span>1 Jogador</span>
+                        </div>
+                        <div class="divider">
+                            <p style="color: var(--purple-300); font-size: 0.75rem; margin-bottom: 0.25rem;">Recorde:</p>
+                            <p style="font-size: 1.125rem; background: linear-gradient(to right, var(--yellow-400), var(--orange-500)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">1.000.000</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sessões Section -->
+    <section id="sessoes">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge" style="color: #c7d2fe; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3);">
+                    <span>⏰</span>
+                    <span>Sessões de Jogo</span>
+                </div>
+                <h2 class="section-title">
+                    Controle de <span class="gradient-text" style="background: linear-gradient(to right, #818cf8, var(--purple-400)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Sessões</span>
+                </h2>
+                <p class="section-description">
+                    Acompanhe todas as sessões de jogo em tempo real e mantenha o histórico completo de uso.
+                </p>
+            </div>
+
+            <div class="stats-cards">
+                <div class="stat-box stat-box-green">
+                    <div class="stat-box-header">
+                        <div class="stat-icon stat-icon-green">
+                            <span style="font-size: 1.25rem;">📈</span>
+                        </div>
+                        <span style="color: var(--green-300);">Sessões Ativas</span>
+                    </div>
+                    <div class="stat-value">2</div>
+                    <p style="color: #bbf7d0; font-size: 0.875rem;">Em andamento agora</p>
+                </div>
+
+                <div class="stat-box stat-box-blue">
+                    <div class="stat-box-header">
+                        <div class="stat-icon stat-icon-blue">
+                            <span style="font-size: 1.25rem;">📅</span>
+                        </div>
+                        <span style="color: #93c5fd;">Hoje</span>
+                    </div>
+                    <div class="stat-value">18</div>
+                    <p style="color: #bfdbfe; font-size: 0.875rem;">Sessões realizadas</p>
+                </div>
+
+                <div class="stat-box stat-box-purple">
+                    <div class="stat-box-header">
+                        <div class="stat-icon stat-icon-purple">
+                            <span style="font-size: 1.25rem;">💵</span>
+                        </div>
+                        <span style="color: var(--purple-300);">Receita Hoje</span>
+                    </div>
+                    <div class="stat-value">R$ 327,00</div>
+                    <p style="color: var(--purple-200); font-size: 0.875rem;">+12% vs ontem</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Console</th>
+                            <th>Jogo</th>
+                            <th>Duração</th>
+                            <th>Data/Hora</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="color: white;">Lucas Silva</td>
+                            <td style="color: var(--purple-200);">Arcade Cabinet #01</td>
+                            <td style="color: var(--cyan-300);">Street Fighter II</td>
+                            <td style="color: var(--purple-200);">⏰ 2h 30min</td>
+                            <td style="color: var(--purple-200);">
+                                <div>13/11/2025</div>
+                                <div style="color: var(--purple-300); font-size: 0.875rem;">14:30</div>
+                            </td>
+                            <td style="color: var(--green-300);">R$ 25,00</td>
+                            <td><span class="status-badge status-disponivel">Ativa</span></td>
+                        </tr>
+                        <tr style="background: rgba(15, 23, 42, 0.2);">
+                            <td style="color: white;">Maria Santos</td>
+                            <td style="color: var(--purple-200);">Arcade Cabinet #04</td>
+                            <td style="color: var(--cyan-300);">Metal Slug</td>
+                            <td style="color: var(--purple-200);">⏰ 1h 45min</td>
+                            <td style="color: var(--purple-200);">
+                                <div>13/11/2025</div>
+                                <div style="color: var(--purple-300); font-size: 0.875rem;">16:00</div>
+                            </td>
+                            <td style="color: var(--green-300);">R$ 18,00</td>
+                            <td><span class="status-badge status-disponivel">Ativa</span></td>
+                        </tr>
+                        <tr>
+                            <td style="color: white;">Pedro Costa</td>
+                            <td style="color: var(--purple-200);">Arcade Cabinet #02</td>
+                            <td style="color: var(--cyan-300);">Pac-Man</td>
+                            <td style="color: var(--purple-200);">⏰ 3h 15min</td>
+                            <td style="color: var(--purple-200);">
+                                <div>12/11/2025</div>
+                                <div style="color: var(--purple-300); font-size: 0.875rem;">19:20</div>
+                            </td>
+                            <td style="color: var(--green-300);">R$ 32,00</td>
+                            <td><span class="status-badge status-regular">Finalizada</span></td>
+                        </tr>
+                        <tr style="background: rgba(15, 23, 42, 0.2);">
+                            <td style="color: white;">Ana Oliveira</td>
+                            <td style="color: var(--purple-200);">Arcade Cabinet #06</td>
+                            <td style="color: var(--cyan-300);">Space Invaders</td>
+                            <td style="color: var(--purple-200);">⏰ 1h 20min</td>
+                            <td style="color: var(--purple-200);">
+                                <div>12/11/2025</div>
+                                <div style="color: var(--purple-300); font-size: 0.875rem;">15:45</div>
+                            </td>
+                            <td style="color: var(--green-300);">R$ 14,00</td>
+                            <td><span class="status-badge status-regular">Finalizada</span></td>
+                        </tr>
+                        <tr>
+                            <td style="color: white;">Carlos Mendes</td>
+                            <td style="color: var(--purple-200);">Arcade Cabinet #05</td>
+                            <td style="color: var(--cyan-300);">Tekken 3</td>
+                            <td style="color: var(--purple-200);">⏰ 2h 00min</td>
+                            <td style="color: var(--purple-200);">
+                                <div>11/11/2025</div>
+                                <div style="color: var(--purple-300); font-size: 0.875rem;">18:30</div>
+                            </td>
+                            <td style="color: var(--green-300);">R$ 20,00</td>
+                            <td><span class="status-badge status-regular">Finalizada</span></td>
+                        </tr>
+                        <tr style="background: rgba(15, 23, 42, 0.2);">
+                            <td style="color: white;">Julia Ferreira</td>
+                            <td style="color: var(--purple-200);">Arcade Cabinet #01</td>
+                            <td style="color: var(--cyan-300);">Mortal Kombat</td>
+                            <td style="color: var(--purple-200);">⏰ 1h 30min</td>
+                            <td style="color: var(--purple-200);">
+                                <div>11/11/2025</div>
+                                <div style="color: var(--purple-300); font-size: 0.875rem;">20:15</div>
+                            </td>
+                            <td style="color: var(--green-300);">R$ 15,00</td>
+                            <td><span class="status-badge status-regular">Finalizada</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-grid">
+                    <div class="footer-section">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                            <div style="padding: 0.5rem; background: linear-gradient(to bottom right, var(--purple-500), var(--pink-500)); border-radius: 0.5rem;">
+                                <span style="font-size: 1.5rem;">🎮</span>
+                            </div>
+                            <span style="color: white; font-weight: 600;">ARCADE MANAGER</span>
+                        </div>
+                        <p style="color: var(--purple-200); font-size: 0.875rem;">
+                            Sistema completo de gerenciamento para fliperamas modernos.
+                        </p>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4>Navegação</h4>
+                        <ul>
+                            <li><a href="#clientes">Clientes</a></li>
+                            <li><a href="#consoles">Consoles</a></li>
+                            <li><a href="#jogos">Jogos</a></li>
+                            <li><a href="#sessoes">Sessões</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4>Horário</h4>
+                        <ul style="color: var(--purple-200); font-size: 0.875rem;">
+                            <li>Segunda a Sexta: 10h - 22h</li>
+                            <li>Sábado: 12h - 00h</li>
+                            <li>Domingo: 12h - 22h</li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4>Contato</h4>
+                        <ul style="font-size: 0.875rem; color: var(--purple-200);">
+                            <li style="display: flex; align-items: center; gap: 0.5rem;">📞 (11) 9999-9999</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem;">✉️ contato@arcade.com</li>
+                            <li style="display: flex; align-items: center; gap: 0.5rem;">📍 São Paulo, SP</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2025 Arcade Manager. Sistema de gerenciamento de fliperama.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

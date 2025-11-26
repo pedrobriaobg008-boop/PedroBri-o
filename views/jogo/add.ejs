@@ -1,0 +1,41 @@
+     <%-include('../cabecalho.ejs')%>
+     <header>
+        <div class="title2">Novo Jogo</div>
+        <div class="subtitle">Adicione um novo jogo</div><br>
+      </header>
+      <div class="content">
+        <form id="form-categoria" enctype="multipart/form-data" autocomplete="off" action="/jogo/add/ok" method="post">
+          <div class="grid">
+            <div>
+              <label for="foto">Foto do Jogo</label>
+              <input id="foto" name="foto" type="file">
+            </div>
+            <div>
+              <label for="titulo">Título</label>
+              <input id="titulo" name="titulo" type="text" placeholder="Ex: The Last of Us Remastered" required>
+            </div>
+            <div>
+              <label for="genero">Gênero</label>
+              <input id="genero" name="genero" type="text" placeholder="Ex: Ação-aventura" required>
+            </div>
+            <div>
+              <label for="popularidade">Popularidade</label>
+              <input id="popularidade" name="popularidade" type="number" placeholder="Ex: 60%" required>
+            </div>
+            <div>
+              <label for="qtde_jogadores">Quantidade de Jogadores</label>
+              <input id="qtde_jogadores" name="qtde_jogadores" type="number" placeholder="Ex: 1, 2, 4" required>
+            </div>
+            <div>
+              <label for="recorde">Recorde</label>
+              <input id="recorde" name="recorde" type="number" placeholder="Ex: 500000" required>
+            </div>
+          </div>
+          <footer>
+            <a type="button" class="btn ghost" id="btn-cancelar" href="/jogo/lst">Cancelar</a>
+            <button type="submit" class="btn primary">Criar Jogo</button>
+          </footer>
+        </form>
+      </div>
+
+      <%-include('../rodape.ejs')%>

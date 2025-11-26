@@ -1,0 +1,32 @@
+<%-include('../cabecalho.ejs')%>
+     <header>
+        <div class="title2">Editar Sessão de Jogo</div>
+        <div class="subtitle">Edite os dados de uma sessão de jogo</div><br>
+      </header>
+      <div class="content">
+        <form id="form-categoria" autocomplete="off" method="post">
+          <div class="grid">
+            <div>
+              <label for="id">ID</label>
+                <input id="id" name="id" type="text" value="<%=sessao._id%>" readonly required>
+            </div>
+            <div>
+              <label for="hora_ini">Hora de Início</label>
+              <input type="datetime-local" id="hora_ini" name="hora_ini" value="<%= sessao.hora_ini_input %>" required>
+            </div>
+            <div>
+            <label for="hora_fim">Hora de Fim</label>
+            <input type="datetime-local" id="hora_fim" name="hora_fim" value="<%= sessao.hora_fim_input %>" required>
+            </div>
+             <div>
+              <label for="valor_total">Valor Total</label>
+              <input id="valor_total" name="valor_total" type="number" step="0.01" placeholder="Insira o valor total de custo da sessão" value="<%=sessao.valor_total%>" required>
+            </div>
+          <footer>
+            <a type="button" class="btn ghost" id="btn-cancelar" href="/sessao/lst">Cancelar</a>
+            <button type="submit" class="btn primary">Salvar</button>
+          </footer>
+        </form>
+      </div>
+
+      <%-include('../rodape.ejs')%>
