@@ -9,6 +9,9 @@ const SessaoSchema = conexao.Schema({
     hora:{type:String},
     valor_total:{type:Number},
     status:{type:String},
+    sessões_ativas:{type:Number},
+    sessoes_dia:{type:Number},
+    receita_dia:{type:Number}
 })
 
 const Sessao = conexao.model("Sessao", SessaoSchema);

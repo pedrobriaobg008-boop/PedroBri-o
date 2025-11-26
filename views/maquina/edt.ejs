@@ -1,0 +1,54 @@
+     <%-include('../cabecalho.ejs')%>
+     <header>
+        <div class="title2">Editar Máquina</div>
+        <div class="subtitle">Edite os dados de uma máquina</div><br>
+      </header>
+      <div class="content">
+        <form id="form-maquina" autocomplete="off" method="post">
+          <div class="grid">
+            <div>
+              <label for="id">ID</label>
+              <input id="id" name="id" type="text" value="<%=maquina._id%>" readonly required>
+            </div>
+            <div>
+              <label for="nome_arcade">Nome da Máquina</label>
+              <input id="nome_arcade" name="nome_arcade" type="text" placeholder="Ex: Arcade Cabinet #07" value="<%=maquina.nome_arcade%>" required>
+            </div>
+            <div>
+              <label for="jogos_instalados">Jogos Instalados</label>
+              <input id="jogos_instalados" name="jogos_instalados" type="text" placeholder="Super Mario Bros" value="<%=maquina.jogos_instalados%>" required>
+            </div>
+            <div>
+              <label for="condicao">Condição</label>
+              <select id="condicao" name="condicao" required>
+                <option value="" disabled selected>Selecione a condição</option>
+                <option value="Excelente" <%=maquina.condicao === 'Excelente' ? 'selected' : ''%>>Excelente</option>
+                <option value="Ótima" <%=maquina.condicao === 'Ótima' ? 'selected' : ''%>>Ótima</option>
+                <option value="Em Reparo" <%=maquina.condicao === 'Em Reparo' ? 'selected' : ''%>>Em Reparo</option>
+              </select>
+            </div>
+            <div>
+              <label for="disponibilidade">Disponibilidade</label>
+              <select id="disponibilidade" name="disponibilidade" required>
+                <option value="" disabled selected>Selecione a disponibilidade</option>
+                <option value="Disponivel" <%=maquina.disponibilidade === 'Disponivel' ? 'selected' : ''%>>Disponível</option>
+                <option value="Em Uso" <%=maquina.disponibilidade === 'Em Uso' ? 'selected' : ''%>>Em Uso</option>
+                <option value="Em Manutenção" <%=maquina.disponibilidade === 'Em Manutenção' ? 'selected' : ''%>>Em Manutenção</option>
+              </select>
+            </div>
+            <div>
+              <label for="conexao_internet">Conexão com a Internet</label>
+              <select id="conexao_internet" name="conexao_internet" required>
+                <option value="" disabled selected>Selecione a conexão</option>
+                <option value="Online" <%=maquina.conexao_internet === 'Online' ? 'selected' : ''%>>Online</option>
+                <option value="Offline" <%=maquina.conexao_internet === 'Offline' ? 'selected' : ''%>>Offline</option>
+              </select>
+          </div>   
+          <footer>
+            <a type="button" class="btn ghost" id="btn-cancelar" href="/maquina/lst">Cancelar</a>
+            <button type="submit" class="btn primary">Salvar</button>
+          </footer>
+        </form>
+      </div>
+
+      <%-include('../rodape.ejs')%>

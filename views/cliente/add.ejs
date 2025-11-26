@@ -31,12 +31,17 @@
               <input id="nome" name="pontos" type="number" placeholder="Insira os Pontos" required>
             </div>
             <div>
-              <label for="nome">Jogos Favoritos</label>
-              <input id="nome" name="jogos_favoritos" type="text" placeholder="Insira os Jogos Favoritos" required>
+              <label for="nome">Jogo Favorito</label>
+              <input id="nome" name="jogo_favorito" type="text" placeholder="Insira o Jogo Favorito" required>
             </div>
             <div>
               <label for="nome">Plano de Assinatura</label>
-              <input id="nome" name="plano_assinatura" type="text" placeholder="Insira o Plano de Assinatura" required>
+              <select name="plano_assinatura" required>
+                <option value="" disabled selected>Selecione o Plano de Assinatura</option>
+                <option value="Regular">Regular</option>
+                <option value="VIP Gold">VIP Gold</option>
+                <option value="VIP Platinum">VIP Platinum</option>
+              </select>
             </div>
           </div>   
           <footer>

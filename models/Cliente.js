@@ -7,8 +7,8 @@ const ClienteSchema = conexao.Schema({
     email:{type:String},
     horas_jogadas:{type:Number},
     pontos:{type:Number},
-    jogos_favoritos:{type:String},
-    plano_assinatura:{type:String},
+    jogo_favorito:{type:String},
+    plano_assinatura:{type:Object},
 })
 
 const Cliente = conexao.model("Cliente", ClienteSchema)

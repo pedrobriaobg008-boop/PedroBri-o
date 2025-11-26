@@ -1,10 +1,10 @@
    <%-include('../cabecalho.ejs')%>
      <header>
-        <div class="title2">Novo Console</div>
-        <div class="subtitle">Registre um novo Console</div><br>
+        <div class="title2">Nova Máquina</div>
+        <div class="subtitle">Registre uma nova Máquina</div><br>
       </header>
       <div class="content">
-        <form id="form-console" autocomplete="off" action="/console/add/ok" method="post">
+        <form id="form-maquina" autocomplete="off" action="/maquina/add/ok" method="post">
           <div class="grid">
             <div>
               <label for="nome_arcade">Nome da Máquina</label>
@@ -20,7 +20,20 @@
                 <option value="" disabled selected>Selecione a condição</option>
                 <option value="Excelente">Excelente</option>
                 <option value="Ótima">Ótima</option>
+                <option value="Boa">Boa</option>
+                <option value="Regular">Regular</option>
+                <option value="Ruim">Ruim</option>
+                <option value="Péssima">Péssima</option>
                 <option value="Em Reparo">Em Reparo</option>
+              </select>
+            </div>
+            <div>
+              <label for="disponibilidade">Disponibilidade</label>
+              <select id="disponibilidade" name="disponibilidade" required>
+                <option value="" disabled selected>Selecione a disponibilidade</option>
+                <option value="Disponivel">Disponível</option>
+                <option value="Em Uso">Em Uso</option>
+                <option value="Manutenção">Em Manutenção</option>
               </select>
             </div>
              <div>
@@ -31,18 +44,9 @@
                 <option value="Offline">Offline</option>
               </select>
             </div>
-            <div>
-              <label for="status">Status</label>
-              <select id="status" name="status" required>
-                <option value="" disabled selected>Selecione o status</option>
-                <option value="Disponivel">Disponível</option>
-                <option value="Em Uso">Em Uso</option>
-                <option value="Manutenção">Em Manutenção</option>
-              </select>
-            </div>
           <footer>
-            <a type="button" class="btn ghost" id="btn-cancelar" href="/console/lst">Cancelar</a>
-            <button type="submit" class="btn primary">Criar Console</button>
+            <a type="button" class="btn ghost" id="btn-cancelar" href="/maquina/lst">Cancelar</a>
+            <button type="submit" class="btn primary">Criar Máquina</button>
           </footer>
         </form>
       </div>

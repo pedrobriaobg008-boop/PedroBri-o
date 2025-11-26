@@ -2,7 +2,7 @@ import express from 'express'
 const app = express();
 
 import Cliente from './models/Cliente.js';
-import Console from './models/Console.js'
+import Maquina from './models/Maquina.js';
 import Jogo from './models/Jogo.js';
 import Sessao from './models/Sessao.js';
 
@@ -35,11 +35,17 @@ app.get('/cliente/lst', async (req, res) => {
             { cpf: { $regex: q, $options: "i" } },
             { telefone: { $regex: q, $options: "i" } },
             { email: { $regex: q, $options: "i" } },
+            { jogo_favorito: { $regex: q, $options: "i" } },
+            { plano_assinatura: { $regex: q, $options: "i" } },
         ]
     };
 
     if (isNumber && q.trim() !== "") {
-        query.$or.push({ saldo_creditos: Number(q) });
+        query.$or.push({ pontos: Number(q) });
+    }
+
+    if (isNumber && q.trim() !== "") {
+        query.$or.push({ horas_jogadas: Number(q) });
     }
 
     const cliente = await Cliente.find(query);
@@ -50,14 +56,16 @@ app.get('/cliente/add', (req, res) => {
     res.render("cliente/add")
 })
 
-app.post('/cliente/add/ok', upload.single('foto'), async (req, res) => {
+app.post('/cliente/add/ok', async (req, res) => {
     await Cliente.create({
         nome: req.body.nome,
         cpf: req.body.cpf,
         telefone: req.body.telefone,
         email: req.body.email,
-        saldo_creditos: req.body.saldo_creditos,
-        foto: req.file.buffer
+        horas_jogadas: req.body.horas_jogadas,
+        pontos: req.body.pontos,
+        jogo_favorito: req.body.jogo_favorito,
+        plano_assinatura: req.body.plano_assinatura
     });
     res.render("cliente/addok")
 })
@@ -68,18 +76,18 @@ app.get('/cliente/edt/:id', async (req, res) => {
     res.render("cliente/edt", {cliente})
 })
 
-app.post('/cliente/edt/:id', upload.single('foto'), async (req, res) => {
+app.post('/cliente/edt/:id', async (req, res) => {
     const updateData = {
         nome: req.body.nome,
         cpf: req.body.cpf,
         telefone: req.body.telefone,
         email: req.body.email,
-        saldo_creditos: req.body.saldo_creditos
+        horas_jogadas: req.body.horas_jogadas,
+        pontos: req.body.pontos,
+        jogo_favorito: req.body.jogo_favorito,
+        plano_assinatura: req.body.plano_assinatura
     };
-    // Só atualiza foto se foi enviada
-    if (req.file) {
-        updateData.foto = req.file.buffer;
-    }
+
     await Cliente.findByIdAndUpdate(req.params.id, updateData);
     res.render("cliente/edtok")
 })
@@ -90,7 +98,7 @@ app.get('/cliente/del/:id', async (req, res) => {
 })
 
 // ...existing code...
-app.get('/console/lst', async (req, res) => {
+app.get('/maquina/lst', async (req, res) => {
   const qRaw = req.query.q || "";
   const q = qRaw.trim();
 
@@ -118,9 +126,9 @@ app.get('/console/lst', async (req, res) => {
     query = { $or: textOr };
   }
 
-  const docs = await Console.find(query);
+  const docs = await Maquina.find(query);
   function pad(n) { return n < 10 ? '0' + n : n; }
-  const consoles = docs.map(d => {
+  const maquinas = docs.map(d => {
     // aplicar getters para que foto (Buffer) seja convertida em data URI
     const obj = d.toObject({ getters: true });
     if (obj.data_aquisicao) {
@@ -134,18 +142,18 @@ app.get('/console/lst', async (req, res) => {
     return obj;
   });
 
-  res.render("console/lst", { consoles, q: qRaw });
+  res.render("maquina/lst", { maquinas, q: qRaw });
 });
 
-app.get('/console/add', (req, res) => {
-    res.render("console/add")
+app.get('/maquina/add', (req, res) => {
+    res.render("maquina/add")
 })
 
-app.post('/console/add/ok', upload.single('foto'), async (req, res) => {
+app.post('/maquina/add/ok', upload.single('foto'), async (req, res) => {
     if (req.body.data_aquisicao) {
         req.body.data_aquisicao = new Date(req.body.data_aquisicao + 'T12:00:00Z');
     }
-    await Console.create({
+    await Maquina.create({
         nome: req.body.nome,
         fabricante: req.body.fabricante,
         status: req.body.status,
@@ -153,36 +161,36 @@ app.post('/console/add/ok', upload.single('foto'), async (req, res) => {
         data_aquisicao: req.body.data_aquisicao,
         foto: req.file.buffer
     });
-    res.render("console/addok")
+    res.render("maquina/addok")
 })
 
-app.get('/console/edt/:id', async (req, res) => {
+app.get('/maquina/edt/:id', async (req, res) => {
     try {
-        const doc = await Console.findById(req.params.id);
+        const doc = await Maquina.findById(req.params.id);
         if (!doc) {
-            return res.status(404).send('Console não encontrado');
+            return res.status(404).send('Maquina não encontrada');
         }
   // aplicar getters para gerar data URI da foto (se houver)
-  const consoleObj = doc.toObject({ getters: true });
+  const maquinaObj = doc.toObject({ getters: true });
         
-        if (consoleObj.data_aquisicao) {
-            const dt = new Date(consoleObj.data_aquisicao);
+        if (maquinaObj.data_aquisicao) {
+            const dt = new Date(maquinaObj.data_aquisicao);
             function pad(n) { return n < 10 ? '0' + n : n; }
-            consoleObj.data_iso = dt.getUTCFullYear() + '-' + 
+            maquinaObj.data_iso = dt.getUTCFullYear() + '-' + 
                                  pad(dt.getUTCMonth() + 1) + '-' + 
                                  pad(dt.getUTCDate());
         } else {
-            consoleObj.data_iso = '';
+            maquinaObj.data_iso = '';
         }
         
-        res.render("console/edt", {console: consoleObj});
+        res.render("maquina/edt", {maquina: maquinaObj});
     } catch (err) {
-        console.error('Erro ao editar console:', err);
-        res.status(500).send('Erro ao buscar console para edição');
+        console.error('Erro ao editar maquina:', err);
+        res.status(500).send('Erro ao buscar maquina para edição');
     }
 });
 
-app.post('/console/edt/:id', upload.single('foto'), async (req, res) => {
+app.post('/maquina/edt/:id', upload.single('foto'), async (req, res) => {
     try {
         if (req.body.data_aquisicao) {
             req.body.data_aquisicao = new Date(req.body.data_aquisicao + 'T12:00:00Z');
@@ -198,17 +206,17 @@ app.post('/console/edt/:id', upload.single('foto'), async (req, res) => {
         if (req.file) {
             updateData.foto = req.file.buffer;
         }
-        await Console.findByIdAndUpdate(req.params.id, updateData);
-        res.render("console/edtok");
+        await Maquina.findByIdAndUpdate(req.params.id, updateData);
+        res.render("maquina/edtok");
     } catch (err) {
-        console.error('Erro ao salvar console:', err);
-        res.status(500).send('Erro ao salvar alterações do console');
+        console.error('Erro ao salvar maquina:', err);
+        res.status(500).send('Erro ao salvar alterações da maquina');
     }
 });
 
-app.get('/console/del/:id', async (req, res) => {
-    await Console.findByIdAndDelete(req.params.id)
-    res.redirect("/console/lst")
+app.get('/maquina/del/:id', async (req, res) => {
+    await Maquina.findByIdAndDelete(req.params.id)
+    res.redirect("/maquina/lst")
 })
 
 app.get('/jogo/lst', async (req, res) => {
