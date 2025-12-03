@@ -149,17 +149,13 @@ app.get('/maquina/add', (req, res) => {
     res.render("maquina/add")
 })
 
-app.post('/maquina/add/ok', upload.single('foto'), async (req, res) => {
-    if (req.body.data_aquisicao) {
-        req.body.data_aquisicao = new Date(req.body.data_aquisicao + 'T12:00:00Z');
-    }
+app.post('/maquina/add/ok', async (req, res) => {
     await Maquina.create({
-        nome: req.body.nome,
-        fabricante: req.body.fabricante,
-        status: req.body.status,
-        preco_hora: req.body.preco_hora,
-        data_aquisicao: req.body.data_aquisicao,
-        foto: req.file.buffer
+        nome_arcade: req.body.nome_arcade,
+        jogos_instalados: req.body.jogos_instalados,
+        condicao: req.body.condicao,
+        disponibilidade: req.body.disponibilidade,
+        conexao_internet: req.body.conexao_internet,
     });
     res.render("maquina/addok")
 })
