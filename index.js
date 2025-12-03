@@ -97,52 +97,25 @@ app.get('/cliente/del/:id', async (req, res) => {
     res.redirect("/cliente/lst")
 })
 
-// ...existing code...
 app.get('/maquina/lst', async (req, res) => {
-  const qRaw = req.query.q || "";
-  const q = qRaw.trim();
+   const q = req.query.q || "";
+   const isNumber = !isNaN(q);
 
-  const textOr = [
-    { nome: { $regex: q, $options: "i" } },
-    { fabricante: { $regex: q, $options: "i" } },
-    { status: { $regex: q, $options: "i" } }
-  ];
+    const query = {
+        $or: [
+            { nome_arcade: { $regex: q, $options: "i" } },
+            { condicao: { $regex: q, $options: "i" } },
+            { disponibilidade: { $regex: q, $options: "i" } },
+            { conexao_internet: { $regex: q, $options: "i" } },
+        ]
+    };
 
-  let query = {};
-  if (q !== "") {
-    const rangeMatch = q.match(/^(\d+[.,]?\d*)\s*-\s*(\d+[.,]?\d*)$/);
-    if (rangeMatch) {
-      const a = parseFloat(rangeMatch[1].replace(',', '.'));
-      const b = parseFloat(rangeMatch[2].replace(',', '.'));
-      if (!isNaN(a) && !isNaN(b)) {
-        textOr.push({ preco_hora: { $gte: Math.min(a, b), $lte: Math.max(a, b) } });
-      }
-    } else {
-      const num = parseFloat(q.replace(',', '.'));
-      if (!isNaN(num)) {
-        textOr.push({ preco_hora: num });
-      }
+    if (isNumber && q.trim() !== "") {
+        query.$or.push({ jogos_instalados: Number(q) });
     }
-    query = { $or: textOr };
-  }
 
-  const docs = await Maquina.find(query);
-  function pad(n) { return n < 10 ? '0' + n : n; }
-  const maquinas = docs.map(d => {
-    // aplicar getters para que foto (Buffer) seja convertida em data URI
-    const obj = d.toObject({ getters: true });
-    if (obj.data_aquisicao) {
-      const dt = new Date(obj.data_aquisicao);
-      obj.data_iso = dt.getUTCFullYear() + '-' + pad(dt.getUTCMonth() + 1) + '-' + pad(dt.getUTCDate());
-      obj.data_display = pad(dt.getUTCDate()) + '/' + pad(dt.getUTCMonth() + 1) + '/' + dt.getUTCFullYear();
-    } else {
-      obj.data_iso = '';
-      obj.data_display = '';
-    }
-    return obj;
-  });
-
-  res.render("maquina/lst", { maquinas, q: qRaw });
+    const maquinas = await Maquina.find(query);
+    res.render("maquina/lst", { maquinas, q });
 });
 
 app.get('/maquina/add', (req, res) => {
@@ -187,27 +160,15 @@ app.get('/maquina/edt/:id', async (req, res) => {
 });
 
 app.post('/maquina/edt/:id', upload.single('foto'), async (req, res) => {
-    try {
-        if (req.body.data_aquisicao) {
-            req.body.data_aquisicao = new Date(req.body.data_aquisicao + 'T12:00:00Z');
-        }
         const updateData = {
-            nome: req.body.nome,
-            fabricante: req.body.fabricante,
-            status: req.body.status,
-            preco_hora: req.body.preco_hora,
-            data_aquisicao: req.body.data_aquisicao
+            nome_arcade: req.body.nome_arcade,
+            jogos_instalados: req.body.jogos_instalados,
+            condicao: req.body.condicao,
+            disponibilidade: req.body.disponibilidade,
+            conexao_internet: req.body.conexao_internet,
         };
-        // Só atualiza foto se foi enviada
-        if (req.file) {
-            updateData.foto = req.file.buffer;
-        }
         await Maquina.findByIdAndUpdate(req.params.id, updateData);
         res.render("maquina/edtok");
-    } catch (err) {
-        console.error('Erro ao salvar maquina:', err);
-        res.status(500).send('Erro ao salvar alterações da maquina');
-    }
 });
 
 app.get('/maquina/del/:id', async (req, res) => {
@@ -216,56 +177,66 @@ app.get('/maquina/del/:id', async (req, res) => {
 })
 
 app.get('/jogo/lst', async (req, res) => {
-  const q = (req.query.q || '').trim();
-  let query = {};
-  if (q !== '') {
-    const regex = { $regex: q, $options: 'i' };
-    const campos = ['titulo', 'genero', 'classificacao_etaria', 'plataforma'];
-    query = { $or: campos.map(c => ({ [c]: regex })) };
-  }
-  const jogos = await Jogo.find(query);
-  res.render('jogo/lst', { jogo: jogos, q });
+  const q = req.query.q || "";
+    const isNumber = !isNaN(q);
+
+    const query = {
+        $or: [
+            { titulo: { $regex: q, $options: "i" } },
+            { genero: { $regex: q, $options: "i" } },
+            { classificacao_etaria: { $regex: q, $options: "i" } },
+            { plataforma: { $regex: q, $options: "i" } },
+        ]
+    };
+
+    if (isNumber && q.trim() !== "") {
+        query.$or.push({ popularidade: Number(q) });
+    }
+
+    if (isNumber && q.trim() !== "") {
+        query.$or.push({ qtd_jogadores: Number(q) });
+    }
+
+    if (isNumber && q.trim() !== "") {
+        query.$or.push({ recorde: Number(q) });
+    }
+
+    const jogo = await Jogo.find(query);
+    res.render("jogo/lst", { jogo, q });
 });
 
 app.get('/jogo/add', async (req, res) => {
-  try {
-    const docs = await Console.find().lean();
-    const plataformas = Array.from(new Set(docs.map(d => d.nome).filter(p => !!p)));
-    res.render('jogo/add', { plataformas });
-  } catch (err) {
-    console.error('Erro em /jogo/add:', err);
-    res.render('jogo/add', { plataformas: [] });
-  }
+    res.render('jogo/add');
 });
 
 app.post('/jogo/add/ok', upload.single('foto'), async (req, res) => {
     await Jogo.create({
         titulo: req.body.titulo,
         genero: req.body.genero,
-        classificacao_etaria: req.body.classificacao_etaria,
-        plataforma: req.body.plataforma,
+        popularidade: req.body.popularidade,
+        qtde_jogadores: req.body.qtde_jogadores,
+        recorde: req.body.recorde,
         foto: req.file.buffer
     });
-    res.render("jogo/addok" )
+    res.render("jogo/addok");
 })
 
 app.get('/jogo/edt/:id', async (req, res) => {
-  try {
-    const doc = await Jogo.findById(req.params.id).lean();
-    if (!doc) return res.status(404).send('Jogo não encontrado');
-    const docs = await Console.find().lean();
-    const plataformas = Array.from(new Set(docs.map(d => d.nome).filter(p => !!p)));
-    if (doc.plataforma && !plataformas.includes(doc.plataforma)) plataformas.unshift(doc.plataforma);
-    res.render('jogo/edt', { jogo: doc, plataformas });
-  } 
-    catch (err) {
-    console.error('Erro em /jogo/edt/:id', err);
-    res.status(500).send('Erro ao buscar jogo');
-  }
+  const jogoDoc = await Jogo.findById(req.params.id);
+  const jogo = jogoDoc.toObject({ getters: true });
+  res.render("jogo/edt", {jogo});
 });
 
-app.post('/jogo/edt/:id', async (req, res) => {
-    await Jogo.findByIdAndUpdate(req.params.id, req.body)
+app.post('/jogo/edt/:id', upload.single('foto'), async (req, res) => {
+    const updateData = {
+            titulo: req.body.titulo,
+            genero: req.body.genero,
+            popularidade: req.body.popularidade,
+            qtde_jogadores: req.body.qtde_jogadores,
+            recorde: req.body.recorde,
+            foto: req.file ? req.file.buffer : undefined
+    };
+    await Jogo.findByIdAndUpdate(req.params.id, updateData);
     res.render("jogo/edtok")
 })
 
@@ -274,7 +245,6 @@ app.get('/jogo/del/:id', async (req, res) => {
     res.redirect("/jogo/lst")
 })
 
-// ...existing code...
 app.get('/sessao/lst', async (req, res) => {
   try {
     const qRaw = (req.query.q || '').trim();

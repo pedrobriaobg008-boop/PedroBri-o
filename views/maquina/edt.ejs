@@ -16,7 +16,7 @@
             </div>
             <div>
               <label for="jogos_instalados">Jogos Instalados</label>
-              <input id="jogos_instalados" name="jogos_instalados" type="text" placeholder="Super Mario Bros" value="<%=maquina.jogos_instalados%>" required>
+              <input id="jogos_instalados" name="jogos_instalados" type="number" value="<%=maquina.jogos_instalados%>" required>
             </div>
             <div>
               <label for="condicao">Condição</label>
@@ -24,6 +24,10 @@
                 <option value="" disabled selected>Selecione a condição</option>
                 <option value="Excelente" <%=maquina.condicao === 'Excelente' ? 'selected' : ''%>>Excelente</option>
                 <option value="Ótima" <%=maquina.condicao === 'Ótima' ? 'selected' : ''%>>Ótima</option>
+                <option value="Boa" <%=maquina.condicao === 'Boa' ? 'selected' : ''%>>Boa</option>
+                <option value="Regular" <%=maquina.condicao === 'Regular' ? 'selected' : ''%>>Regular</option>
+                <option value="Ruim" <%=maquina.condicao === 'Ruim' ? 'selected' : ''%>>Ruim</option>
+                <option value="Péssima" <%=maquina.condicao === 'Péssima' ? 'selected' : ''%>>Péssima</option>
                 <option value="Em Reparo" <%=maquina.condicao === 'Em Reparo' ? 'selected' : ''%>>Em Reparo</option>
               </select>
             </div>
