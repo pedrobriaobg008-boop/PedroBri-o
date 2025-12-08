@@ -207,7 +207,8 @@ app.get('/jogo/lst', async (req, res) => {
         query.$or.push({ recorde: Number(q) });
     }
 
-    const jogo = await Jogo.find(query);
+    const jogoDocs = await Jogo.find(query);
+    const jogo = jogoDocs.map(doc => doc.toObject({ getters: true }));
     res.render("jogo/lst", { jogo, q });
 });
 
@@ -253,159 +254,322 @@ app.get('/jogo/del/:id', async (req, res) => {
 
 app.get('/sessao/lst', async (req, res) => {
   try {
-    const qRaw = (req.query.q || '').trim();
-    let docs = [];
+    const q = req.query.q || "";
+    let query = {};
 
-    if (qRaw === '') {
-      // sem pesquisa -> lista tudo
-      docs = await Sessao.find().lean();
-    } else {
-      const or = [];
-
-      // 1) dd/mm/yyyy ou dd/mm/yyyy hh:mm
-      const dm = qRaw.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?$/);
-      if (dm) {
-        const day = Number(dm[1]), month = Number(dm[2]) - 1, year = Number(dm[3]);
-        if (dm[4] && dm[5]) {
-          const start = new Date(year, month, day, Number(dm[4]), Number(dm[5]), 0, 0);
-          const end = new Date(start.getTime() + 59999);
-          or.push({ hora_ini: { $gte: start, $lte: end } }, { hora_fim: { $gte: start, $lte: end } });
-        } else {
+    if (q.trim() !== "") {
+      const isNumber = !isNaN(q);
+      
+      // Tenta buscar por valor_total se for número
+      if (isNumber) {
+        query.valor_total = Number(q);
+      } else {
+        // Tenta parse de data em formato brasileiro dd/mm/yyyy
+        const dateMatch = q.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (dateMatch) {
+          const day = Number(dateMatch[1]);
+          const month = Number(dateMatch[2]) - 1;
+          const year = Number(dateMatch[3]);
           const start = new Date(year, month, day, 0, 0, 0, 0);
           const end = new Date(year, month, day, 23, 59, 59, 999);
-          or.push({ hora_ini: { $gte: start, $lte: end } }, { hora_fim: { $gte: start, $lte: end } });
-        }
-      } else {
-        // 2) ISO / YYYY-MM-DD / YYYY-MM-DDTHH:MM
-        const iso = new Date(qRaw);
-        if (!isNaN(iso.getTime())) {
-          const hasTime = qRaw.includes(':');
-          if (hasTime) {
-            const start = new Date(iso);
-            const end = new Date(start.getTime() + 59999);
-            or.push({ hora_ini: { $gte: start, $lte: end } }, { hora_fim: { $gte: start, $lte: end } });
-          } else {
-            const start = new Date(iso.getFullYear(), iso.getMonth(), iso.getDate(), 0, 0, 0, 0);
-            const end = new Date(iso.getFullYear(), iso.getMonth(), iso.getDate(), 23, 59, 59, 999);
-            or.push({ hora_ini: { $gte: start, $lte: end } }, { hora_fim: { $gte: start, $lte: end } });
-          }
-        } else {
-          // 3) valor_total: número ou range "10-50"
-          const rangeMatch = qRaw.match(/^(\d+[.,]?\d*)\s*-\s*(\d+[.,]?\d*)$/);
-          if (rangeMatch) {
-            const a = parseFloat(rangeMatch[1].replace(',', '.'));
-            const b = parseFloat(rangeMatch[2].replace(',', '.'));
-            if (!isNaN(a) && !isNaN(b)) {
-              or.push({ valor_total: { $gte: Math.min(a, b), $lte: Math.max(a, b) } });
-            }
-          } else {
-            const num = parseFloat(qRaw.replace(',', '.'));
-            if (!isNaN(num)) {
-              or.push({ valor_total: num });
-            } else {
-              // 4) fallback: pesquisar por campos textuais relacionados se existirem
-              // Se sua Sessao tem referências (ex: jogoNome, clienteNome) adicione aqui:
-              // or.push({ 'jogoNome': { $regex: qRaw, $options: 'i' } }, { 'clienteNome': { $regex: qRaw, $options: 'i' } });
-              // Se não houver campo textual, nenhuma correspondência possível -> retorna vazio
-              docs = [];
-            }
-          }
+          query.$or = [
+            { hora_ini: { $gte: start, $lte: end } },
+            { hora_fim: { $gte: start, $lte: end } }
+          ];
         }
       }
-
-      if (or.length) docs = await Sessao.find({ $or: or }).lean();
     }
 
-    // formata para a view
-    const sessao = (docs || []).map(doc => {
-      const obj = { ...doc };
+    const sessoes = await Sessao.find(query)
+      .populate('id_cliente', 'nome')
+      .populate('id_maquina', 'nome_arcade')
+      .populate('id_jogo', 'titulo')
+      .lean();
+
+    // Formatar as datas para exibição
+    const sessao = sessoes.map(s => {
+      const obj = { ...s };
       if (obj.hora_ini) {
-        const dt = new Date(obj.hora_ini);
-        obj.hora_ini_formatada = dt.toLocaleString('pt-BR', {
+        obj.hora_ini_formatada = new Date(obj.hora_ini).toLocaleString('pt-BR', {
           timeZone: 'America/Sao_Paulo',
           day: '2-digit', month: '2-digit', year: 'numeric',
           hour: '2-digit', minute: '2-digit'
         });
       }
       if (obj.hora_fim) {
-        const dt = new Date(obj.hora_fim);
-        obj.hora_fim_formatada = dt.toLocaleString('pt-BR', {
+        obj.hora_fim_formatada = new Date(obj.hora_fim).toLocaleString('pt-BR', {
           timeZone: 'America/Sao_Paulo',
           day: '2-digit', month: '2-digit', year: 'numeric',
           hour: '2-digit', minute: '2-digit'
         });
       }
+      // Calcular duração em minutos
+      if (obj.hora_ini && obj.hora_fim) {
+        const diff = new Date(obj.hora_fim) - new Date(obj.hora_ini);
+        obj.duracao_minutos = Math.round(diff / 60000);
+      }
       return obj;
     });
 
-    res.render('sessao/lst', { sessao, q: qRaw });
+    res.render('sessao/lst', { sessao, q });
   } catch (err) {
     console.error('Erro em /sessao/lst:', err);
-    res.render('sessao/lst', { sessao: [], q: req.query.q || '' });
+    res.render('sessao/lst', { sessao: [], q: '' });
   }
 });
 
-app.get('/sessao/add', (req, res) => {
-    res.render("sessao/add")
-})
+app.get('/sessao/add', async (req, res) => {
+  try {
+    const clientes = await Cliente.find().lean();
+    const maquinas = await Maquina.find().lean();
+    const jogos = await Jogo.find().lean();
+    res.render("sessao/add", { clientes, maquinas, jogos });
+  } catch (err) {
+    console.error('Erro ao carregar formulário:', err);
+    res.render("sessao/add", { clientes: [], maquinas: [], jogos: [] });
+  }
+});
 
 app.post('/sessao/add/ok', async (req, res) => {
-    await Sessao.create(req.body)
-    res.render("sessao/addok" )
-})
+  try {
+    await Sessao.create({
+      id_cliente: req.body.id_cliente,
+      id_maquina: req.body.id_maquina,
+      id_jogo: req.body.id_jogo,
+      hora_ini: new Date(req.body.hora_ini),
+      hora_fim: new Date(req.body.hora_fim),
+      valor_total: req.body.valor_total
+    });
+    res.render("sessao/addok");
+  } catch (err) {
+    console.error('Erro ao criar sessão:', err);
+    res.status(500).send('Erro ao criar sessão');
+  }
+});
 
 app.get('/sessao/edt/:id', async (req, res) => {
-    try {
-        const doc = await Sessao.findById(req.params.id);
-        if (!doc) return res.status(404).send('Sessão não encontrada');
-        
-        const sessao = doc.toObject();
-        
-        if (sessao.hora_ini) {
-            sessao.hora_ini_input = new Date(sessao.hora_ini)
-                .toLocaleString('sv', { timeZone: 'America/Sao_Paulo' })
-                .slice(0, 16);
-        }
-        if (sessao.hora_fim) {
-            sessao.hora_fim_input = new Date(sessao.hora_fim)
-                .toLocaleString('sv', { timeZone: 'America/Sao_Paulo' })
-                .slice(0, 16);
-        }
-        
-        res.render("sessao/edt", {sessao});
-    } catch (err) {
-        console.error('Erro ao editar sessão:', err);
-        res.status(500).send('Erro ao buscar sessão');
+  try {
+    const doc = await Sessao.findById(req.params.id);
+    if (!doc) return res.status(404).send('Sessão não encontrada');
+    
+    const sessao = doc.toObject();
+    
+    // Formatar datas para input datetime-local
+    if (sessao.hora_ini) {
+      sessao.hora_ini_input = new Date(sessao.hora_ini)
+        .toLocaleString('sv', { timeZone: 'America/Sao_Paulo' })
+        .slice(0, 16);
     }
+    if (sessao.hora_fim) {
+      sessao.hora_fim_input = new Date(sessao.hora_fim)
+        .toLocaleString('sv', { timeZone: 'America/Sao_Paulo' })
+        .slice(0, 16);
+    }
+    
+    // Carregar listas para os selects
+    const clientes = await Cliente.find().lean();
+    const maquinas = await Maquina.find().lean();
+    const jogos = await Jogo.find().lean();
+    
+    res.render("sessao/edt", { sessao, clientes, maquinas, jogos });
+  } catch (err) {
+    console.error('Erro ao editar sessão:', err);
+    res.status(500).send('Erro ao buscar sessão');
+  }
 });
 
 app.post('/sessao/edt/:id', async (req, res) => {
-    try {
-        if (req.body.hora_ini) {
-            req.body.hora_ini = new Date(req.body.hora_ini);
-        }
-        if (req.body.hora_fim) {
-            req.body.hora_fim = new Date(req.body.hora_fim);
-        }
-        
-        await Sessao.findByIdAndUpdate(req.params.id, req.body);
-        res.render("sessao/edtok");
-    } catch (err) {
-        console.error('Erro ao salvar sessão:', err);
-        res.status(500).send('Erro ao salvar alterações');
-    }
+  try {
+    await Sessao.findByIdAndUpdate(req.params.id, {
+      id_cliente: req.body.id_cliente,
+      id_maquina: req.body.id_maquina,
+      id_jogo: req.body.id_jogo,
+      hora_ini: new Date(req.body.hora_ini),
+      hora_fim: new Date(req.body.hora_fim),
+      valor_total: req.body.valor_total
+    });
+    res.render("sessao/edtok");
+  } catch (err) {
+    console.error('Erro ao salvar sessão:', err);
+    res.status(500).send('Erro ao salvar alterações');
+  }
 });
 
 app.get('/sessao/del/:id', async (req, res) => {
-    await Sessao.findByIdAndDelete(req.params.id)
-    res.redirect("/sessao/lst")
-})
+  await Sessao.findByIdAndDelete(req.params.id);
+  res.redirect("/sessao/lst");
+});
 
 //=============== S I T E ================
 
 app.get('/site', async (req, res) => {
-    res.render("site/index")
-})
+  try {
+    // Carregar dados do banco de dados
+    const clientes = await Cliente.find().limit(4).lean();
+    const maquinas = await Maquina.find().lean();
+    const jogos = await Jogo.find().lean();
+    const sessoes = await Sessao.find()
+      .populate('id_cliente', 'nome')
+      .populate('id_maquina', 'nome_arcade')
+      .populate('id_jogo', 'titulo')
+      .lean()
+      .limit(6); // Mostrar últimas 6 sessões
+
+    // Calcular estatísticas
+    const totalClientes = await Cliente.countDocuments();
+    const totalMaquinas = await Maquina.countDocuments();
+    const totalJogos = await Jogo.countDocuments();
+    const totalSessoes = await Sessao.countDocuments();
+
+    // Calcular horas jogadas totais
+    let horasJogadasTotal = 0;
+    sessoes.forEach(s => {
+      if (s.hora_ini && s.hora_fim) {
+        const diff = new Date(s.hora_fim) - new Date(s.hora_ini);
+        horasJogadasTotal += diff / (1000 * 60 * 60); // converter para horas
+      }
+    });
+
+    // Calcular sessões ativas (em andamento agora)
+    const agora = new Date();
+    const sessoesAtivas = sessoes.filter(s => {
+      const ini = new Date(s.hora_ini);
+      const fim = new Date(s.hora_fim);
+      return ini <= agora && agora <= fim;
+    }).length;
+
+    // Calcular receita de hoje
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const amanha = new Date(hoje);
+    amanha.setDate(amanha.getDate() + 1);
+
+    const sessoeHoje = await Sessao.find({
+      hora_ini: { $gte: hoje, $lt: amanha }
+    }).lean();
+
+    const receitaHoje = sessoeHoje.reduce((total, s) => total + (s.valor_total || 0), 0);
+
+    // Mapear dados de clientes com status (VIP ou Regular)
+    // Mapear dados de clientes com status (VIP ou Regular)
+const clientesMapeados = clientes.map(c => {
+  let status = 'regular';
+  const plano = (c.plano_assinatura || 'Regular').toLowerCase();
+  
+  if (plano.includes('platinum')) status = 'vip-platinum';
+  else if (plano.includes('gold')) status = 'vip-gold';
+  else status = 'regular';
+  
+  return {
+    ...c,
+    status: status,
+    plano: c.plano_assinatura || 'Regular'
+  };
+});
+
+    // Mapear dados de máquinas com lógica corrigida de status
+    const maquinasMapeadas = maquinas.map(m => {
+      let statusDisponibilidade = 'disponivel';
+      let iconStatus = '📶';
+      
+      // Status baseado em disponibilidade
+      if (m.disponibilidade === 'Em Manutenção') {
+        statusDisponibilidade = 'manutencao';
+      } else if (m.disponibilidade === 'Em Uso') {
+        statusDisponibilidade = 'em-uso';
+      }
+      
+      // Status de conexão
+      const statusConexao = m.conexao_internet === 'Sim' ? 'Online' : 'Offline';
+      
+      return {
+        ...m,
+        statusDisponibilidade: statusDisponibilidade,
+        statusConexao: statusConexao,
+        condicao: m.condicao || 'Ótima'
+      };
+    });
+
+    // Mapear dados de jogos com cores de gradiente
+    const cores = [
+      { bg: '#ef4444', text: '#f97316' }, // vermelho-laranja
+      { bg: '#eab308', text: '#fb923c' }, // amarelo-laranja
+      { bg: '#a855f7', text: '#ec4899' }, // roxo-rosa
+      { bg: '#22c55e', text: '#059669' }, // verde
+      { bg: '#f97316', text: '#ef4444' }, // laranja-vermelho
+      { bg: '#3b82f6', text: '#06b6d4' }, // azul-ciano
+      { bg: '#6366f1', text: '#a855f7' }, // indigo-roxo
+      { bg: '#06b6d4', text: '#2563eb' }  // ciano-azul
+    ];
+
+    const jogosMapeados = jogos.map((j, idx) => {
+      const cor = cores[idx % cores.length];
+      return {
+        ...j,
+        cor: cor,
+        porcentagemPopularidade: Math.min(j.popularidade || 50, 100)
+      };
+    });
+
+    // Mapear dados de sessões para o site
+    const sessoesMapeadas = sessoes.map(s => {
+      const ini = new Date(s.hora_ini);
+      const fim = new Date(s.hora_fim);
+      const diff = fim - ini;
+      const duracao = Math.round(diff / (1000 * 60)); // minutos
+      const horas = Math.floor(duracao / 60);
+      const minutos = duracao % 60;
+
+      const agora = new Date();
+      const ativa = ini <= agora && agora <= fim;
+
+      return {
+        ...s,
+        cliente_nome: s.id_cliente?.nome || 'N/A',
+        maquina_nome: s.id_maquina?.nome_arcade || 'N/A',
+        jogo_nome: s.id_jogo?.titulo || 'N/A',
+        duracao_formatada: `${horas}h ${minutos}min`,
+        duracao_minutos: duracao,
+        data_formatada: ini.toLocaleDateString('pt-BR'),
+        hora_formatada: ini.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        ativa: ativa
+      };
+    });
+
+    res.render("site/index", {
+      clientes: clientesMapeados,
+      maquinas: maquinasMapeadas,
+      jogos: jogosMapeados,
+      sessoes: sessoesMapeadas,
+      stats: {
+        totalClientes,
+        totalMaquinas,
+        totalJogos,
+        totalSessoes,
+        horasJogadasTotal: Math.round(horasJogadasTotal),
+        sessoesAtivas,
+        receitaHoje
+      }
+    });
+  } catch (err) {
+    console.error('Erro ao carregar site:', err);
+    res.render("site/index", {
+      clientes: [],
+      maquinas: [],
+      jogos: [],
+      sessoes: [],
+      stats: {
+        totalClientes: 0,
+        totalMaquinas: 0,
+        totalJogos: 0,
+        totalSessoes: 0,
+        horasJogadasTotal: 0,
+        sessoesAtivas: 0,
+        receitaHoje: 0
+      }
+    });
+  }
+});
 app.listen(3001)
 // Exporta o handler compatível com Vercel
 export default app;

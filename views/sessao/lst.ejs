@@ -12,10 +12,10 @@
       </a>
     </div>
   </div>
-    <form action="/sessao/lst" method="get" class="search-bar" style="flex:1; max-width:380px; display:flex; gap:10px;">
-        <input type="text" name="q" value="<%= q %>" placeholder="Pesquisar sessão..." />
-        <button class="btn primary">Buscar</button>
-    </form>
+  <form action="/sessao/lst" method="get" class="search-bar" style="flex:1; max-width:380px; display:flex; gap:10px;">
+    <input type="text" name="q" value="<%= q %>" placeholder="Pesquisar por valor ou data (dd/mm/yyyy)..." />
+    <button class="btn primary">Buscar</button>
+  </form>
   <div class="table-wrap" style="margin-top:14px;">
     <table>
       <thead>
@@ -23,39 +23,37 @@
           <th>Cliente</th>
           <th>Máquina</th>
           <th>Jogo</th>
+          <th>Início</th>
+          <th>Término</th>
           <th>Duração</th>
-          <th>Data</th>
-          <th>Hora</th>
           <th>Valor Total</th>
-          <th>Status</th>
           <th class="actions-cell">Ações</th>
         </tr>
       </thead>
       <tbody>
-        <% sessao.forEach(sessao => { %>
+        <% sessao.forEach(s => { %>
         <tr>
-          <td><%= sessao.id_cliente?.nome || 'N/A' %></td>
-          <td><%= sessao.id_maquina?.nome || 'N/A' %></td>
-          <td><%= sessao.id_jogo?.titulo || 'N/A' %></td>
-          <td><%= sessao.duracao != null ? sessao.duracao + ' min' : 'N/A' %></td>
-          <td><%= sessao.data ? new Date(sessao.data).toLocaleDateString('pt-BR') : 'N/A' %></td>
-          <td><%= sessao.hora || 'N/A' %></td>
-          <td>R$ <%= sessao.valor_total?.toFixed(2).replace('.', ',') || '0,00' %></td>
-          <td><%= sessao.status || 'N/A' %></td>
-            <td class="actions-cell">
-              <a href="/sessao/edt/<%=sessao._id%>" class="icon-btn" title="Editar" aria-label="Editar">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
-                </svg>
-              </a>
-              <a href="/sessao/del/<%=sessao._id%>" class="icon-btn" title="Excluir" aria-label="Excluir">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                  <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
-                </svg>
-              </a>
-            </td>
-          </tr>
+          <td><%= s.id_cliente?.nome || 'N/A' %></td>
+          <td><%= s.id_maquina?.nome_arcade || 'N/A' %></td>
+          <td><%= s.id_jogo?.titulo || 'N/A' %></td>
+          <td><%= s.hora_ini_formatada || 'N/A' %></td>
+          <td><%= s.hora_fim_formatada || 'N/A' %></td>
+          <td><%= s.duracao_minutos ? s.duracao_minutos + ' min' : 'N/A' %></td>
+          <td>R$ <%= s.valor_total ? s.valor_total.toFixed(2).replace('.', ',') : '0,00' %></td>
+          <td class="actions-cell">
+            <a href="/sessao/edt/<%= s._id %>" class="icon-btn" title="Editar" aria-label="Editar">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/>
+              </svg>
+            </a>
+            <a href="/sessao/del/<%= s._id %>" class="icon-btn" title="Excluir" aria-label="Excluir">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </a>
+          </td>
+        </tr>
         <% }); %>
       </tbody>
     </table>
